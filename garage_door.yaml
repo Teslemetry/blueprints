@@ -1,0 +1,56 @@
+blueprint:
+  name: Teslemetry Garage Door Opener
+  author: Brett Adams
+  description: Opens a garage door when your Tesla is approching
+  domain: automation
+  input:
+    distance_to_arrival_entity:
+      name: Distance to arrival entity
+      selector:
+        entity:
+          filter:
+            - integration: teslemetry
+              domain: sensor
+              device_class: distance
+    distance_to_arrival:
+      name: Distance to arrival value to trigger open
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: any
+          mode: box
+    route_entity:
+      name: Route entity
+      selector:
+        entity:
+          filter:
+            - integration: teslemetry
+              domain: device_tracker
+    route_zone:
+      name: Route destination
+      selector:
+        entity:
+          filter:
+            - domain: zone
+    cover_entity:
+      name: Garage door entity
+      selector:
+        entity:
+          filter:
+            - domain: cover
+trigger:
+  - platform: numeric_state
+    entity_id:
+      - !input distance_to_arrival_entity
+    below: !input distance_to_arrival
+    above: 0
+condition:
+  - condition: zone
+    entity_id: !input route_entity
+    zone: !input route_zone
+action:
+  - service: cover.open_cover
+    target:
+      entity_id: !input cover_entity
+mode: restart
